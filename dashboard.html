@@ -7,9 +7,19 @@
 <body>
 
 <h2 id="title"></h2>
+  <div id="createBox" style="margin-bottom:20px; display:none;">
+  <h3>Create Proposal</h3>
+
+  <input id="branch" placeholder="Branch Code (e.g. BR001)" />
+  <input id="loanType" placeholder="Loan Type" />
+  <input id="amount" placeholder="Amount" type="number" />
+  <input id="remarks" placeholder="Remarks (optional)" />
+
+  <button onclick="createProposal()">Create</button>
+</div>
+
 
 <table border="1" cellpadding="6" id="table"></table>
-
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyRBNbXMeeCdaNkQjAK_DcCSGY3_L8QIqE5vSwj8_DxXEwZQ8S1P8MOW40dvOQqFhI/exec";
 
@@ -21,6 +31,10 @@ if (!user) {
 
 document.getElementById("title").innerText =
   `Welcome ${user.name} (${user.role})`;
+
+if (user.role === "admin") {
+  document.getElementById("createBox").style.display = "block";
+}
 
 fetch(`${API}?action=getProposals&email=${encodeURIComponent(user.email)}`)
   .then(res => res.json())
@@ -37,6 +51,7 @@ function renderTable(data) {
     <tr>
       <th>Proposal ID</th>
       <th>Branch</th>
+      <th>Loan Type</th>
       <th>Officer</th>
       <th>Amount</th>
       <th>Status</th>
@@ -45,7 +60,7 @@ function renderTable(data) {
   `;
 
   if (data.length === 0) {
-    table.innerHTML += `<tr><td colspan="6">No proposals found</td></tr>`;
+    table.innerHTML += `<tr><td colspan="7">No proposals found</td></tr>`;
     return;
   }
 
@@ -55,6 +70,7 @@ function renderTable(data) {
     row.innerHTML = `
       <td>${p.proposal_id}</td>
       <td>${p.branch_code}</td>
+      <td>${p.loan_type || "-"}</td>
       <td>${p.officer_email || "-"}</td>
       <td>${p.amount || "-"}</td>
       <td>${p.status}</td>
@@ -81,6 +97,9 @@ function updateStatus(proposalId, status) {
 
   fetch(API, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
       action: "updateStatus",
       proposal_id: proposalId,
@@ -94,7 +113,47 @@ function updateStatus(proposalId, status) {
     console.error(err);
   });
 }
+
+function createProposal() {
+  const branch = document.getElementById("branch").value.trim();
+  const loanType = document.getElementById("loanType").value.trim();
+  const amount = document.getElementById("amount").value.trim();
+  const remarks = document.getElementById("remarks").value.trim();
+
+  if (!branch || !loanType || !amount) {
+    alert("Please fill Branch, Loan Type and Amount");
+    return;
+  }
+
+  fetch(API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      action: "createProposal",
+      branch_code: branch,
+      loan_type: loanType,
+      amount: amount,
+      remarks: remarks
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Proposal Created: " + data.proposal_id);
+      location.reload();
+    } else {
+      alert("Error creating proposal");
+    }
+  })
+  .catch(err => {
+    alert("Create proposal failed");
+    console.error(err);
+  });
+}
 </script>
+
 
 </body>
 </html>
