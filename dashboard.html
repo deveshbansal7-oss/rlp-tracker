@@ -1,0 +1,77 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww28600\viewh17440\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html>\
+<body>\
+\
+<h2 id="title"></h2>\
+<table border="1" id="table"></table>\
+\
+<script>\
+const API = "
+\f1\fs26 https://script.google.com/macros/s/AKfycbzb5tQA8dMjxodKGgSW6mj3FTobb9Sc7RCK-AHjZv4FibqJB-acaLM7QniUglSYDpLo/exec
+\f0\fs24 ";\
+const user = JSON.parse(localStorage.getItem("user"));\
+\
+if (!user) \{\
+  window.location.href = "index.html";\
+\}\
+\
+document.getElementById("title").innerText =\
+  `Welcome $\{user.name\} ($\{user.role\})`;\
+\
+fetch(`$\{API\}?action=getProposals&email=$\{user.email\}`)\
+  .then(res => res.json())\
+  .then(data => render(data));\
+\
+function render(data) \{\
+  const table = document.getElementById("table");\
+  table.innerHTML = `\
+    <tr>\
+      <th>ID</th>\
+      <th>Status</th>\
+      <th>Update</th>\
+    </tr>\
+  `;\
+\
+  data.forEach(p => \{\
+    const row = document.createElement("tr");\
+\
+    row.innerHTML = `\
+      <td>$\{p.proposal_id\}</td>\
+      <td>$\{p.status\}</td>\
+      <td>\
+        $\{user.role !== "branch" ? `\
+        <select onchange="updateStatus('$\{p.proposal_id\}', this.value)">\
+          <option>$\{p.status\}</option>\
+          <option>Under Process</option>\
+          <option>Approved</option>\
+          <option>Rejected</option>\
+        </select>` : "View Only"\}\
+      </td>\
+    `;\
+\
+    table.appendChild(row);\
+  \});\
+\}\
+\
+function updateStatus(id, status) \{\
+  fetch(API, \{\
+    method: "POST",\
+    body: JSON.stringify(\{\
+      action: "updateStatus",\
+      proposal_id: id,\
+      status: status\
+    \})\
+  \}).then(() => location.reload());\
+\}\
+</script>\
+\
+</body>\
+</html>\
+}
