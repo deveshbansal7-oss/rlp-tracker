@@ -1,7 +1,43 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="UTF-8">
+  <title>RLP Proposal Tracker</title>
+</head>
 <body>
-<h1>RLP Tracker is LIVE</h1>
-<p>GitHub Pages is working.</p>
+
+<h2>RLP Proposal Tracker – Login</h2>
+
+<input type="email" id="email" placeholder="Enter your email" />
+<button onclick="login()">Login</button>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbzb5tQA8dMjxodKGgSW6mj3FTobb9Sc7RCK-AHjZv4FibqJB-acaLM7QniUglSYDpLo/exec";
+
+function login() {
+  const email = document.getElementById("email").value.trim();
+
+  if (!email) {
+    alert("Please enter email");
+    return;
+  }
+
+  fetch(`${API}?action=login&email=${encodeURIComponent(email)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        localStorage.setItem("user", JSON.stringify(data));
+        window.location.href = "dashboard.html";
+      }
+    })
+    .catch(err => {
+      alert("API error. Check console.");
+      console.error(err);
+    });
+}
+</script>
+
 </body>
 </html>
